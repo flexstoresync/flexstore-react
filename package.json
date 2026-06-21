@@ -51,7 +51,7 @@
     "react": "^18 || ^19"
   },
   "dependencies": {
-    "@flexstore/core": "^0.1.0"
+    "@flexstore/core": "^0.1.2"
   },
   "engines": {
     "node": ">=18"
