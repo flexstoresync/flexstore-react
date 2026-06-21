@@ -1,0 +1,59 @@
+{
+  "name": "@flexstore/react",
+  "version": "0.1.1",
+  "description": "React provider and hooks for FlexStore local-first sync",
+  "type": "module",
+  "license": "MIT",
+  "author": "FlexStore Sync <https://github.com/flexstoresync>",
+  "homepage": "https://github.com/flexstoresync/flexstore-react#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/flexstoresync/flexstore-react.git"
+  },
+  "bugs": {
+    "url": "https://github.com/flexstoresync/flexstore-react/issues"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org"
+  },
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": "./index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./index.d.ts",
+  "files": [
+    "dist",
+    "index.d.ts",
+    "README.md",
+    "LICENSE",
+    "examples"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "flexstore",
+    "react",
+    "offline-first",
+    "local-first",
+    "sync",
+    "hooks"
+  ],
+  "peerDependencies": {
+    "react": "^18 || ^19"
+  },
+  "dependencies": {
+    "@flexstore/core": "^0.1.0"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

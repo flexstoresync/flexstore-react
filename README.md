@@ -1,6 +1,9 @@
 # @flexstore/react
 
-React bindings for [FlexStore](https://github.com/flexstoresync/flexstore) — local-first data that syncs when you're online.
+React bindings for **FlexStore** — local-first data that syncs when you're online.
+
+**Repository:** [github.com/flexstoresync/flexstore-react](https://github.com/flexstoresync/flexstore-react)  
+**Monorepo source:** [flexstore/packages/react](https://github.com/flexstoresync/flexstore/tree/main/packages/react)
 
 ## Install
 
@@ -10,10 +13,10 @@ npm install @flexstore/react @flexstore/core
 
 ## Sync backend
 
-| Option | Best for |
-|--------|----------|
-| **[FlexStore hosted SaaS](https://github.com/flexstoresync/flexstore)** | Sign up, create an app, get an API key from the dashboard |
-| **[Self-hosted Docker](https://github.com/flexstoresync/flexstore-self-host)** | Run your own sync server — single tenant, no dashboard, `docker compose up` |
+| Option | Repo / link | Best for |
+|--------|-------------|----------|
+| **FlexStore hosted SaaS** | [flexstore](https://github.com/flexstoresync/flexstore) (`saas/`) | Sign up, create an app, get an API key from the dashboard |
+| **Self-hosted Docker** | [flexstore-self-host](https://github.com/flexstoresync/flexstore-self-host) | Run your own sync server — single tenant, no dashboard |
 
 Both speak the same protocol. Point `baseUrl` at `http://localhost:8088` (or your host) and set `apiKey` + `tenantId`.
 
@@ -39,7 +42,7 @@ src/
       users.ts            # another resource in its own file
 ```
 
-Full working files: [`examples/todos-app/`](./examples/todos-app/) in this package (also mirrored in `developer/tests/mytodo`).
+Full working files: [`examples/todos-app/`](./examples/todos-app/) in this repo ([flexstore-react](https://github.com/flexstoresync/flexstore-react)), also mirrored in the monorepo at `developer/tests/mytodo/`.
 
 ---
 
@@ -144,10 +147,20 @@ VITE_FLEXSTORE_TENANT_ID=your-tenant-id
 ```
 
 For **self-hosted**, use the API key and tenant id from your
-[`flexstore-self-host`](https://github.com/flexstoresync/flexstore-self-host) `.env`
+[flexstore-self-host](https://github.com/flexstoresync/flexstore-self-host) `.env`
 (`OFS_API_KEY`, `OFS_TENANT_ID`).
 
 Register your dev origin (e.g. `http://localhost:5173`) in the hosted dashboard under **Allowed domains**, or set `OFS_CORS_ORIGINS` when self-hosting.
+
+---
+
+## Related repos
+
+| Repo | Role |
+|------|------|
+| [flexstore-core](https://github.com/flexstoresync/flexstore-core) | `@flexstore/core` sync engine |
+| [flexstore-self-host](https://github.com/flexstoresync/flexstore-self-host) | Docker Compose self-host |
+| [flexstore](https://github.com/flexstoresync/flexstore) | Monorepo (server, docs, examples) |
 
 ---
 
