@@ -51,6 +51,17 @@ export function useSyncStatus() {
   return status;
 }
 
+/** Pub/sub SSE connection state and resolved endpoint URLs. */
+export function useRealtimeStatus() {
+  const status = useSyncStatus();
+  return {
+    connected: status.realtimeConnected,
+    baseUrl: status.baseUrl,
+    pubsubUrl: status.pubsubUrl,
+    enabled: !!status.pubsubUrl,
+  };
+}
+
 export function useResource(resource) {
   const client = useClient();
   return useMemo(
@@ -72,4 +83,75 @@ export function useSyncNow() {
 export function useSetPaused() {
   const client = useClient();
   return useCallback((paused) => client.setPaused(paused), [client]);
+}
+
+/** Local device id for this install (after provider ready). */
+export function useDeviceId() {
+  const client = useClient();
+  const ready = useReady();
+  return ready ? client.getDeviceId() : null;
+}
+
+/** Server-registered devices for the tenant (last_seen_at, first_seen_at). */
+export function useDevices({ autoLoad = true } = {}) {
+  const client = useClient();
+  const ready = useReady();
+  const [devices, setDevices] = useState([]);
+  const [loading, setLoading] = useState(autoLoad);
+  const [error, setError] = useState(null);
+
+  const refresh = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const rows = await client.listDevices();
+      setDevices(rows);
+      return rows;
+    } catch (e) {
+      setError(e);
+      throw e;
+    } finally {
+      setLoading(false);
+    }
+  }, [client]);
+
+  useEffect(() => {
+    if (!ready || !autoLoad) return;
+    refresh().catch(() => {});
+  }, [ready, autoLoad, refresh]);
+
+  return { devices, loading, error, refresh };
+}
+
+/** This install's device row from the server. */
+export function useThisDevice({ autoLoad = true } = {}) {
+  const client = useClient();
+  const ready = useReady();
+  const deviceId = useDeviceId();
+  const [device, setDevice] = useState(null);
+  const [loading, setLoading] = useState(autoLoad);
+  const [error, setError] = useState(null);
+
+  const refresh = useCallback(async () => {
+    if (!deviceId) return null;
+    setLoading(true);
+    setError(null);
+    try {
+      const row = await client.getThisDevice();
+      setDevice(row);
+      return row;
+    } catch (e) {
+      setError(e);
+      throw e;
+    } finally {
+      setLoading(false);
+    }
+  }, [client, deviceId]);
+
+  useEffect(() => {
+    if (!ready || !autoLoad || !deviceId) return;
+    refresh().catch(() => {});
+  }, [ready, autoLoad, deviceId, refresh]);
+
+  return { device, deviceId, loading, error, refresh };
 }

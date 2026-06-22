@@ -16,9 +16,16 @@ npm install @flexstore/react @flexstore/core
 | Option | Repo / link | Best for |
 |--------|-------------|----------|
 | **FlexStore hosted SaaS** | [flexstore](https://github.com/flexstoresync/flexstore) (`saas/`) | Sign up, create an app, get an API key from the dashboard |
-| **Self-hosted Docker** | [flexstore-self-host](https://github.com/flexstoresync/flexstore-self-host) | Run your own sync server — single tenant, no dashboard |
+| **Self-hosted Docker** | [flexstore-self-host](https://github.com/flexstoresync/flexstore-self-host) | Run your own sync server with dashboard at `/dashboard/` |
 
-Both speak the same protocol. Point `baseUrl` at `http://localhost:8088` (or your host) and set `apiKey` + `tenantId`.
+Both speak the same protocol. Configure **two URLs**:
+
+| URL | Env var | Default (local) | Purpose |
+|-----|---------|-----------------|--------|
+| Sync API | `VITE_FLEXSTORE_SYNC_URL` | `http://localhost:8088` | push / pull / check-deltas |
+| Pub/sub | `VITE_FLEXSTORE_PUBSUB_URL` | `http://localhost:8090` | SSE sync hints (optional) |
+
+Set `apiKey` + `tenantId` from the dashboard.
 
 ---
 
@@ -50,9 +57,11 @@ Full working files: [`examples/todos-app/`](./examples/todos-app/) in this repo 
 
 Use `defineResource` in each file and `resourceRegistry` to combine them:
 
+Use `defineResource` and `resourceRegistry` from **`@flexstore/core`** (not `@flexstore/react` — Vite and older react versions may not resolve re-exports):
+
 ```ts
 // src/sync/resources/todos.ts
-import { defineResource } from '@flexstore/react';
+import { defineResource } from '@flexstore/core';
 
 export const todosResource = defineResource({
   name: 'todos',
@@ -62,7 +71,7 @@ export const todosResource = defineResource({
 
 ```ts
 // src/sync/registry.ts
-import { resourceRegistry } from '@flexstore/react';
+import { resourceRegistry } from '@flexstore/core';
 import { todosResource } from './resources/todos';
 import { usersResource } from './resources/users';
 
@@ -77,8 +86,11 @@ import { registry } from './registry';
 export function buildSyncConfig(): SyncClientConfig {
   return {
     baseUrl: import.meta.env.VITE_FLEXSTORE_SYNC_URL,
+    pubsubUrl: import.meta.env.VITE_FLEXSTORE_PUBSUB_URL,
     apiKey: import.meta.env.VITE_FLEXSTORE_API_KEY,
     tenantId: import.meta.env.VITE_FLEXSTORE_TENANT_ID,
+    pollIntervalConnectedMs: 10_000,
+    pollIntervalDisconnectedMs: 4_000,
     resources: registry,
   };
 }
@@ -117,12 +129,13 @@ export function App() {
 
 ```tsx
 // src/components/TodoList.tsx
-import { useQuery, useResource, useSyncStatus } from '@flexstore/react';
+import { useQuery, useResource, useSyncStatus, useRealtimeStatus } from '@flexstore/react';
 
 export function TodoList() {
   const todos = useQuery('todos', { done: false });
   const { create, update } = useResource('todos');
   const status = useSyncStatus();
+  const realtime = useRealtimeStatus(); // { connected, baseUrl, pubsubUrl, enabled }
 
   // ...
 }
@@ -142,15 +155,14 @@ See [`examples/todos-app/src/App.tsx`](./examples/todos-app/src/App.tsx),
 ```bash
 # .env.local
 VITE_FLEXSTORE_SYNC_URL=http://localhost:8088
+VITE_FLEXSTORE_PUBSUB_URL=http://localhost:8090
 VITE_FLEXSTORE_API_KEY=your-api-key
 VITE_FLEXSTORE_TENANT_ID=your-tenant-id
 ```
 
-For **self-hosted**, use the API key and tenant id from your
-[flexstore-self-host](https://github.com/flexstoresync/flexstore-self-host) `.env`
-(`OFS_API_KEY`, `OFS_TENANT_ID`).
+When pub/sub is connected, the SDK polls every **10s** as a fallback; when disconnected it polls every **4s**. Hints trigger an immediate targeted pull for the affected resource only.
 
-Register your dev origin (e.g. `http://localhost:5173`) in the hosted dashboard under **Allowed domains**, or set `OFS_CORS_ORIGINS` when self-hosting.
+For **self-hosted**, sign up at `http://localhost:8088/dashboard/`, create a project, and copy the API key and tenant id from there.
 
 ---
 
@@ -173,7 +185,8 @@ Register your dev origin (e.g. `http://localhost:5173`) in the hosted dashboard 
 | `FlexStoreProvider` | Boots the sync client and wraps your app |
 | `useQuery(resource, filter?)` | Live local query; re-renders on store changes |
 | `useResource(resource)` | `{ create, update, remove, syncNow }` |
-| `useSyncStatus()` | `{ stage, online, pending, lastError, lastSyncAt }` |
+| `useSyncStatus()` | Full status incl. `realtimeConnected`, `baseUrl`, `pubsubUrl` |
+| `useRealtimeStatus()` | `{ connected, baseUrl, pubsubUrl, enabled }` |
 | `useReady()` | `true` after IndexedDB init |
 | `useClient()` | Raw `@flexstore/core` client |
 | `useSyncNow()` | Trigger an immediate sync |

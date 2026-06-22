@@ -7,6 +7,10 @@ export {
   useResource,
   useSyncNow,
   useSyncStatus,
+  useRealtimeStatus,
+  useDeviceId,
+  useDevices,
+  useThisDevice,
   useSetPaused,
 } from './hooks.js';
 export { defineResource, resourceRegistry } from '@flexstore/core';

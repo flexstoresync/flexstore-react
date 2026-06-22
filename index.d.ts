@@ -1,5 +1,10 @@
 import type { ReactNode } from 'react';
-import type { ResourceDefinition, SyncClient, SyncClientConfig } from '@flexstore/core';
+import type {
+  ResourceDefinition,
+  SyncClient,
+  SyncClientConfig,
+  SyncStatus,
+} from '@flexstore/core';
 
 export type {
   AttributeType,
@@ -8,9 +13,11 @@ export type {
   PullSchemaWhere,
   ResourceDefinition,
   SyncClientConfig,
+  SyncStatus,
+  TenantDevice,
 } from '@flexstore/core';
 
-export { defineResource, resourceRegistry } from '@flexstore/core';
+export { defineResource, resourceRegistry, normalizeFlexStoreConfig } from '@flexstore/core';
 
 export interface FlexStoreProviderProps {
   config?: SyncClientConfig;
@@ -39,6 +46,26 @@ export function useResource(resource: string): {
   remove: (id: string) => Promise<void>;
   syncNow: () => Promise<void>;
 };
-export function useSyncStatus(): SyncClient['status'];
+export function useSyncStatus(): SyncStatus;
+export function useRealtimeStatus(): {
+  connected: boolean;
+  baseUrl: string;
+  pubsubUrl: string | null;
+  enabled: boolean;
+};
 export function useSyncNow(): () => Promise<void>;
 export function useSetPaused(): (paused: boolean) => void;
+export function useDeviceId(): string | null;
+export function useDevices(options?: { autoLoad?: boolean }): {
+  devices: TenantDevice[];
+  loading: boolean;
+  error: unknown;
+  refresh: () => Promise<TenantDevice[]>;
+};
+export function useThisDevice(options?: { autoLoad?: boolean }): {
+  device: TenantDevice | null;
+  deviceId: string | null;
+  loading: boolean;
+  error: unknown;
+  refresh: () => Promise<TenantDevice | null>;
+};

@@ -63,6 +63,15 @@ function useSyncStatus() {
   useEffect2(() => client.onStatus(setStatus), [client]);
   return status;
 }
+function useRealtimeStatus() {
+  const status = useSyncStatus();
+  return {
+    connected: status.realtimeConnected,
+    baseUrl: status.baseUrl,
+    pubsubUrl: status.pubsubUrl,
+    enabled: !!status.pubsubUrl
+  };
+}
 function useResource(resource) {
   const client = useClient();
   return useMemo2(
@@ -83,6 +92,67 @@ function useSetPaused() {
   const client = useClient();
   return useCallback((paused) => client.setPaused(paused), [client]);
 }
+function useDeviceId() {
+  const client = useClient();
+  const ready = useReady();
+  return ready ? client.getDeviceId() : null;
+}
+function useDevices({ autoLoad = true } = {}) {
+  const client = useClient();
+  const ready = useReady();
+  const [devices, setDevices] = useState2([]);
+  const [loading, setLoading] = useState2(autoLoad);
+  const [error, setError] = useState2(null);
+  const refresh = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const rows = await client.listDevices();
+      setDevices(rows);
+      return rows;
+    } catch (e) {
+      setError(e);
+      throw e;
+    } finally {
+      setLoading(false);
+    }
+  }, [client]);
+  useEffect2(() => {
+    if (!ready || !autoLoad) return;
+    refresh().catch(() => {
+    });
+  }, [ready, autoLoad, refresh]);
+  return { devices, loading, error, refresh };
+}
+function useThisDevice({ autoLoad = true } = {}) {
+  const client = useClient();
+  const ready = useReady();
+  const deviceId = useDeviceId();
+  const [device, setDevice] = useState2(null);
+  const [loading, setLoading] = useState2(autoLoad);
+  const [error, setError] = useState2(null);
+  const refresh = useCallback(async () => {
+    if (!deviceId) return null;
+    setLoading(true);
+    setError(null);
+    try {
+      const row = await client.getThisDevice();
+      setDevice(row);
+      return row;
+    } catch (e) {
+      setError(e);
+      throw e;
+    } finally {
+      setLoading(false);
+    }
+  }, [client, deviceId]);
+  useEffect2(() => {
+    if (!ready || !autoLoad || !deviceId) return;
+    refresh().catch(() => {
+    });
+  }, [ready, autoLoad, deviceId, refresh]);
+  return { device, deviceId, loading, error, refresh };
+}
 
 // src/index.js
 import { defineResource, resourceRegistry } from "@flexstore/core";
@@ -94,11 +164,15 @@ export {
   defineResource,
   resourceRegistry,
   useClient,
+  useDeviceId,
+  useDevices,
   useQuery,
   useReady,
+  useRealtimeStatus,
   useResource,
   useSetPaused,
   useSyncNow,
-  useSyncStatus
+  useSyncStatus,
+  useThisDevice
 };
 //# sourceMappingURL=index.js.map

@@ -1,4 +1,4 @@
-import { defineResource } from '@flexstore/react';
+import { defineResource } from '@flexstore/core';
 
 /** Optional second resource — same pattern, separate file. */
 export const usersResource = defineResource({

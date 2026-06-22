@@ -26,12 +26,16 @@ __export(index_exports, {
   defineResource: () => import_core2.defineResource,
   resourceRegistry: () => import_core2.resourceRegistry,
   useClient: () => useClient,
+  useDeviceId: () => useDeviceId,
+  useDevices: () => useDevices,
   useQuery: () => useQuery,
   useReady: () => useReady,
+  useRealtimeStatus: () => useRealtimeStatus,
   useResource: () => useResource,
   useSetPaused: () => useSetPaused,
   useSyncNow: () => useSyncNow,
-  useSyncStatus: () => useSyncStatus
+  useSyncStatus: () => useSyncStatus,
+  useThisDevice: () => useThisDevice
 });
 module.exports = __toCommonJS(index_exports);
 
@@ -100,6 +104,15 @@ function useSyncStatus() {
   (0, import_react3.useEffect)(() => client.onStatus(setStatus), [client]);
   return status;
 }
+function useRealtimeStatus() {
+  const status = useSyncStatus();
+  return {
+    connected: status.realtimeConnected,
+    baseUrl: status.baseUrl,
+    pubsubUrl: status.pubsubUrl,
+    enabled: !!status.pubsubUrl
+  };
+}
 function useResource(resource) {
   const client = useClient();
   return (0, import_react3.useMemo)(
@@ -120,6 +133,67 @@ function useSetPaused() {
   const client = useClient();
   return (0, import_react3.useCallback)((paused) => client.setPaused(paused), [client]);
 }
+function useDeviceId() {
+  const client = useClient();
+  const ready = useReady();
+  return ready ? client.getDeviceId() : null;
+}
+function useDevices({ autoLoad = true } = {}) {
+  const client = useClient();
+  const ready = useReady();
+  const [devices, setDevices] = (0, import_react3.useState)([]);
+  const [loading, setLoading] = (0, import_react3.useState)(autoLoad);
+  const [error, setError] = (0, import_react3.useState)(null);
+  const refresh = (0, import_react3.useCallback)(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const rows = await client.listDevices();
+      setDevices(rows);
+      return rows;
+    } catch (e) {
+      setError(e);
+      throw e;
+    } finally {
+      setLoading(false);
+    }
+  }, [client]);
+  (0, import_react3.useEffect)(() => {
+    if (!ready || !autoLoad) return;
+    refresh().catch(() => {
+    });
+  }, [ready, autoLoad, refresh]);
+  return { devices, loading, error, refresh };
+}
+function useThisDevice({ autoLoad = true } = {}) {
+  const client = useClient();
+  const ready = useReady();
+  const deviceId = useDeviceId();
+  const [device, setDevice] = (0, import_react3.useState)(null);
+  const [loading, setLoading] = (0, import_react3.useState)(autoLoad);
+  const [error, setError] = (0, import_react3.useState)(null);
+  const refresh = (0, import_react3.useCallback)(async () => {
+    if (!deviceId) return null;
+    setLoading(true);
+    setError(null);
+    try {
+      const row = await client.getThisDevice();
+      setDevice(row);
+      return row;
+    } catch (e) {
+      setError(e);
+      throw e;
+    } finally {
+      setLoading(false);
+    }
+  }, [client, deviceId]);
+  (0, import_react3.useEffect)(() => {
+    if (!ready || !autoLoad || !deviceId) return;
+    refresh().catch(() => {
+    });
+  }, [ready, autoLoad, deviceId, refresh]);
+  return { device, deviceId, loading, error, refresh };
+}
 
 // src/index.js
 var import_core2 = require("@flexstore/core");
@@ -132,11 +206,15 @@ var import_core2 = require("@flexstore/core");
   defineResource,
   resourceRegistry,
   useClient,
+  useDeviceId,
+  useDevices,
   useQuery,
   useReady,
+  useRealtimeStatus,
   useResource,
   useSetPaused,
   useSyncNow,
-  useSyncStatus
+  useSyncStatus,
+  useThisDevice
 });
 //# sourceMappingURL=index.cjs.map

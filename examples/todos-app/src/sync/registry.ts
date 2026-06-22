@@ -1,4 +1,4 @@
-import { resourceRegistry } from '@flexstore/react';
+import { resourceRegistry } from '@flexstore/core';
 import { todosResource } from './resources/todos';
 // import { usersResource } from './resources/users';
 
