@@ -49,12 +49,14 @@ function normalizeWhere(where) {
 }
 function useQuery(resource, where) {
   const client = useClient();
+  const ready = useReady();
   const [rows, setRows] = useState2([]);
   const filter = normalizeWhere(where);
   const whereKey = filter ? JSON.stringify(filter) : "";
   useEffect2(() => {
+    if (!ready) return;
     return client.subscribe(resource, filter, setRows);
-  }, [client, resource, whereKey, filter]);
+  }, [client, resource, whereKey, filter, ready]);
   return rows;
 }
 function useSyncStatus() {

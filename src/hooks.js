@@ -33,13 +33,15 @@ function normalizeWhere(where) {
 
 export function useQuery(resource, where) {
   const client = useClient();
+  const ready = useReady();
   const [rows, setRows] = useState([]);
   const filter = normalizeWhere(where);
   const whereKey = filter ? JSON.stringify(filter) : '';
 
   useEffect(() => {
+    if (!ready) return;
     return client.subscribe(resource, filter, setRows);
-  }, [client, resource, whereKey, filter]);
+  }, [client, resource, whereKey, filter, ready]);
 
   return rows;
 }

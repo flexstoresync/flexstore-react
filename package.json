@@ -1,6 +1,6 @@
 {
   "name": "@flexstore/react",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "description": "React provider and hooks for FlexStore local-first sync",
   "type": "module",
   "license": "MIT",
@@ -56,7 +56,7 @@
     "react": "^18 || ^19"
   },
   "dependencies": {
-    "@flexstore/core": "^0.1.2"
+    "@flexstore/core": "^0.2.5"
   },
   "engines": {
     "node": ">=18"
