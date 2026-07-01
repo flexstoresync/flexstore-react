@@ -19,11 +19,14 @@ var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: tru
 // src/index.js
 var index_exports = {};
 __export(index_exports, {
+  DEFAULT_POLL_INTERVAL_MS: () => import_core2.DEFAULT_POLL_INTERVAL_MS,
+  DEFAULT_PUBSUB_FALLBACK_POLL_MS: () => import_core2.DEFAULT_PUBSUB_FALLBACK_POLL_MS,
   FlexStoreContext: () => FlexStoreContext,
   FlexStoreProvider: () => FlexStoreProvider,
   SyncCtx: () => SyncCtx,
   SyncProvider: () => SyncProvider,
   defineResource: () => import_core2.defineResource,
+  parsePollIntervalMs: () => import_core2.parsePollIntervalMs,
   resourceRegistry: () => import_core2.resourceRegistry,
   useClient: () => useClient,
   useDeviceId: () => useDeviceId,
@@ -199,11 +202,14 @@ function useThisDevice({ autoLoad = true } = {}) {
 var import_core2 = require("@flexstore/core");
 // Annotate the CommonJS export names for ESM import in node:
 0 && (module.exports = {
+  DEFAULT_POLL_INTERVAL_MS,
+  DEFAULT_PUBSUB_FALLBACK_POLL_MS,
   FlexStoreContext,
   FlexStoreProvider,
   SyncCtx,
   SyncProvider,
   defineResource,
+  parsePollIntervalMs,
   resourceRegistry,
   useClient,
   useDeviceId,

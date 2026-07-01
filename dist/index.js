@@ -155,13 +155,16 @@ function useThisDevice({ autoLoad = true } = {}) {
 }
 
 // src/index.js
-import { defineResource, resourceRegistry } from "@flexstore/core";
+import { defineResource, resourceRegistry, parsePollIntervalMs, DEFAULT_PUBSUB_FALLBACK_POLL_MS, DEFAULT_POLL_INTERVAL_MS } from "@flexstore/core";
 export {
+  DEFAULT_POLL_INTERVAL_MS,
+  DEFAULT_PUBSUB_FALLBACK_POLL_MS,
   FlexStoreContext,
   FlexStoreProvider,
   SyncCtx,
   SyncProvider,
   defineResource,
+  parsePollIntervalMs,
   resourceRegistry,
   useClient,
   useDeviceId,
