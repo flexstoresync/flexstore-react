@@ -12,15 +12,19 @@ import { jsx } from "react/jsx-runtime";
 function FlexStoreProvider({ client: clientProp, config, children }) {
   const [client] = useState(() => clientProp ?? createSyncClient(config));
   const [ready, setReady] = useState(false);
+  const [startError, setStartError] = useState(null);
   useEffect(() => {
     let mounted = true;
-    client.start().then(() => mounted && setReady(true));
+    setStartError(null);
+    client.start().then(() => mounted && setReady(true)).catch((e) => {
+      if (mounted) setStartError(e instanceof Error ? e : new Error(String(e)));
+    });
     return () => {
       mounted = false;
       client.stop();
     };
   }, [client]);
-  const value = useMemo(() => ({ client, ready }), [client, ready]);
+  const value = useMemo(() => ({ client, ready, startError }), [client, ready, startError]);
   return /* @__PURE__ */ jsx(FlexStoreContext.Provider, { value, children });
 }
 var SyncProvider = FlexStoreProvider;
@@ -39,6 +43,9 @@ function useClient() {
 }
 function useReady() {
   return useFlexStoreContext().ready;
+}
+function useStartError() {
+  return useFlexStoreContext().startError ?? null;
 }
 function normalizeWhere(where) {
   if (!where) return void 0;
@@ -176,6 +183,7 @@ export {
   useRealtimeStatus,
   useResource,
   useSetPaused,
+  useStartError,
   useSyncNow,
   useSyncStatus,
   useThisDevice

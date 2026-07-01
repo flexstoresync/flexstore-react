@@ -36,6 +36,7 @@ __export(index_exports, {
   useRealtimeStatus: () => useRealtimeStatus,
   useResource: () => useResource,
   useSetPaused: () => useSetPaused,
+  useStartError: () => useStartError,
   useSyncNow: () => useSyncNow,
   useSyncStatus: () => useSyncStatus,
   useThisDevice: () => useThisDevice
@@ -56,15 +57,19 @@ var import_jsx_runtime = require("react/jsx-runtime");
 function FlexStoreProvider({ client: clientProp, config, children }) {
   const [client] = (0, import_react2.useState)(() => clientProp ?? (0, import_core.createSyncClient)(config));
   const [ready, setReady] = (0, import_react2.useState)(false);
+  const [startError, setStartError] = (0, import_react2.useState)(null);
   (0, import_react2.useEffect)(() => {
     let mounted = true;
-    client.start().then(() => mounted && setReady(true));
+    setStartError(null);
+    client.start().then(() => mounted && setReady(true)).catch((e) => {
+      if (mounted) setStartError(e instanceof Error ? e : new Error(String(e)));
+    });
     return () => {
       mounted = false;
       client.stop();
     };
   }, [client]);
-  const value = (0, import_react2.useMemo)(() => ({ client, ready }), [client, ready]);
+  const value = (0, import_react2.useMemo)(() => ({ client, ready, startError }), [client, ready, startError]);
   return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(FlexStoreContext.Provider, { value, children });
 }
 var SyncProvider = FlexStoreProvider;
@@ -83,6 +88,9 @@ function useClient() {
 }
 function useReady() {
   return useFlexStoreContext().ready;
+}
+function useStartError() {
+  return useFlexStoreContext().startError ?? null;
 }
 function normalizeWhere(where) {
   if (!where) return void 0;
@@ -221,6 +229,7 @@ var import_core2 = require("@flexstore/core");
   useRealtimeStatus,
   useResource,
   useSetPaused,
+  useStartError,
   useSyncNow,
   useSyncStatus,
   useThisDevice
