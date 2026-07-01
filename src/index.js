@@ -3,6 +3,7 @@ export { FlexStoreContext, SyncCtx } from './context.js';
 export {
   useClient,
   useReady,
+  useStartError,
   useQuery,
   useResource,
   useSyncNow,

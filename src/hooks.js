@@ -17,6 +17,11 @@ export function useReady() {
   return useFlexStoreContext().ready;
 }
 
+/** Set when `client.start()` rejects (e.g. SQLite WASM or config error). */
+export function useStartError() {
+  return useFlexStoreContext().startError ?? null;
+}
+
 function normalizeWhere(where) {
   if (!where) return undefined;
   // Accept { where: { field: value } } (docs style) or flat { field: value }

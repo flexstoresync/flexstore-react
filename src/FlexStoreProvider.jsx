@@ -12,17 +12,24 @@ import { FlexStoreContext } from './context.js';
 export function FlexStoreProvider({ client: clientProp, config, children }) {
   const [client] = useState(() => clientProp ?? createSyncClient(config));
   const [ready, setReady] = useState(false);
+  const [startError, setStartError] = useState(null);
 
   useEffect(() => {
     let mounted = true;
-    client.start().then(() => mounted && setReady(true));
+    setStartError(null);
+    client
+      .start()
+      .then(() => mounted && setReady(true))
+      .catch((e) => {
+        if (mounted) setStartError(e instanceof Error ? e : new Error(String(e)));
+      });
     return () => {
       mounted = false;
       client.stop();
     };
   }, [client]);
 
-  const value = useMemo(() => ({ client, ready }), [client, ready]);
+  const value = useMemo(() => ({ client, ready, startError }), [client, ready, startError]);
 
   return <FlexStoreContext.Provider value={value}>{children}</FlexStoreContext.Provider>;
 }

@@ -31,11 +31,13 @@ export const SyncProvider: typeof FlexStoreProvider;
 export const FlexStoreContext: import('react').Context<{
   client: SyncClient;
   ready: boolean;
+  startError: Error | null;
 } | null>;
 export const SyncCtx: typeof FlexStoreContext;
 
 export function useClient(): SyncClient;
 export function useReady(): boolean;
+export function useStartError(): Error | null;
 export function useQuery(
   resource: string,
   where?: Record<string, unknown> | { where?: Record<string, unknown> },
