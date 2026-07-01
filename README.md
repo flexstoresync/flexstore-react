@@ -8,15 +8,68 @@ React bindings for **FlexStore** — local-first data that syncs when you're onl
 ## Install
 
 ```bash
-npm install @flexstore/react @flexstore/core
+npm install @flexstore/react @flexstore/core @journeyapps/wa-sqlite
+```
+
+Local storage: **SQLite WASM** with the DB file in **IndexedDB** (default via `@flexstore/core`).
+
+## Data flow
+
+```mermaid
+flowchart TB
+  subgraph React["Your React tree"]
+    COMP[Components]
+    HOOKS[useQuery / useResource\nuseSyncStatus]
+    PROV[FlexStoreProvider]
+    COMP --> HOOKS
+    PROV --> HOOKS
+  end
+
+  subgraph Core["@flexstore/core"]
+    CLIENT[SyncClient]
+    SQL[SQLite WASM]
+    IDB[(IndexedDB)]
+    CLIENT --> SQL
+    SQL --> IDB
+  end
+
+  subgraph Server["flexstoresync server"]
+    API[Sync API :8088]
+    PUB[Pub/sub SSE :8090\noptional]
+  end
+
+  HOOKS <-->|subscribe / mutations| CLIENT
+  CLIENT <-->|push / pull / check-deltas| API
+  PUB -.->|sync hints| CLIENT
+```
+
+```mermaid
+sequenceDiagram
+  participant T as TodoList.tsx
+  participant H as useQuery
+  participant C as SyncClient
+  participant L as SqliteStore
+  participant S as Sync API
+
+  T->>H: render
+  H->>C: subscribe todos
+  C->>L: getAll todos
+  L-->>C: rows
+  C-->>H: setState
+  H-->>T: todos[]
+
+  T->>H: useResource.create
+  H->>C: create
+  C->>L: upsert pending row
+  C->>S: push when online
 ```
 
 ## Sync backend
 
 | Option | Repo / link | Best for |
 |--------|-------------|----------|
-| **FlexStore hosted SaaS** | [flexstore](https://github.com/flexstoresync/flexstore) (`saas/`) | Sign up, create an app, get an API key from the dashboard |
-| **Self-hosted Docker** | [flexstore-self-host](https://github.com/flexstoresync/flexstore-self-host) | Run your own sync server with dashboard at `/dashboard/` |
+| **FlexStore hosted** | [flexstore](https://github.com/flexstoresync/flexstore) (`flexstoresync-core/`) | Run sync server; use `X-Api-Key` + `X-Tenant-Id` + `X-Device-Id` (auto-provision on first request) |
+| **Self-hosted Docker** | [flexstore-self-host](https://github.com/flexstoresync/flexstore-self-host) | Run your own sync server (Docker Compose) |
 
 Both speak the same protocol. Configure **two URLs**:
 
@@ -24,8 +77,10 @@ Both speak the same protocol. Configure **two URLs**:
 |-----|---------|-----------------|--------|
 | Sync API | `VITE_FLEXSTORE_SYNC_URL` | `http://localhost:8088` | push / pull / check-deltas |
 | Pub/sub | `VITE_FLEXSTORE_PUBSUB_URL` | `http://localhost:8090` | SSE sync hints (optional) |
+| Pub/sub fallback poll | `VITE_FLEXSTORE_PUBSUB_FALLBACK_POLL_MS` | `60000` | `check-deltas` safety net while SSE is connected |
+| Reconnect poll | `VITE_FLEXSTORE_POLL_INTERVAL_MS` | `4000` | Poll when pub/sub is down or not configured |
 
-Set `apiKey` + `tenantId` from the dashboard.
+Set `apiKey`, `tenantId`, and `deviceId` (or let the SDK auto-generate device id) — see [self-host headers](https://github.com/flexstoresync/flexstore-self-host/blob/main/docs/headers.md).
 
 ---
 
@@ -81,6 +136,7 @@ export const registry = resourceRegistry(todosResource, usersResource);
 ```ts
 // src/sync/config.ts
 import type { SyncClientConfig } from '@flexstore/react';
+import { parsePollIntervalMs } from '@flexstore/core';
 import { registry } from './registry';
 
 export function buildSyncConfig(): SyncClientConfig {
@@ -89,8 +145,14 @@ export function buildSyncConfig(): SyncClientConfig {
     pubsubUrl: import.meta.env.VITE_FLEXSTORE_PUBSUB_URL,
     apiKey: import.meta.env.VITE_FLEXSTORE_API_KEY,
     tenantId: import.meta.env.VITE_FLEXSTORE_TENANT_ID,
-    pollIntervalConnectedMs: 10_000,
-    pollIntervalDisconnectedMs: 4_000,
+    pubsubFallbackPollMs: parsePollIntervalMs(
+      import.meta.env.VITE_FLEXSTORE_PUBSUB_FALLBACK_POLL_MS,
+      60_000,
+    ),
+    pollIntervalDisconnectedMs: parsePollIntervalMs(
+      import.meta.env.VITE_FLEXSTORE_POLL_INTERVAL_MS,
+      4_000,
+    ),
     resources: registry,
   };
 }
@@ -158,9 +220,13 @@ VITE_FLEXSTORE_SYNC_URL=http://localhost:8088
 VITE_FLEXSTORE_PUBSUB_URL=http://localhost:8090
 VITE_FLEXSTORE_API_KEY=your-api-key
 VITE_FLEXSTORE_TENANT_ID=your-tenant-id
+# Optional — fallback check-deltas while SSE is connected (default 60000 ms)
+VITE_FLEXSTORE_PUBSUB_FALLBACK_POLL_MS=60000
+# Optional — poll when pub/sub is down (default 4000 ms)
+VITE_FLEXSTORE_POLL_INTERVAL_MS=4000
 ```
 
-When pub/sub is connected, the SDK polls every **10s** as a fallback; when disconnected it polls every **4s**. Hints trigger an immediate targeted pull for the affected resource only.
+When pub/sub is connected, the SDK still runs `check-deltas` on a **fallback timer** (default **60s**) in case hints are missed. When pub/sub is down, it polls every **4s**. Hints trigger an immediate targeted pull for the affected resource only.
 
 For **self-hosted**, sign up at `http://localhost:8088/dashboard/`, create a project, and copy the API key and tenant id from there.
 

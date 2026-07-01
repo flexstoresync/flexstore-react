@@ -39,6 +39,11 @@
     "build": "tsup",
     "prepublishOnly": "npm run build"
   },
+  "devDependencies": {
+    "react": "^19.0.0",
+    "tsup": "^8.5.0",
+    "typescript": "^5.8.3"
+  },
   "keywords": [
     "flexstore",
     "react",

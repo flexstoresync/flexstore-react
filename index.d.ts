@@ -17,7 +17,7 @@ export type {
   TenantDevice,
 } from '@flexstore/core';
 
-export { defineResource, resourceRegistry, normalizeFlexStoreConfig } from '@flexstore/core';
+export { defineResource, resourceRegistry, normalizeFlexStoreConfig, parsePollIntervalMs, DEFAULT_PUBSUB_FALLBACK_POLL_MS, DEFAULT_POLL_INTERVAL_MS } from '@flexstore/core';
 
 export interface FlexStoreProviderProps {
   config?: SyncClientConfig;
