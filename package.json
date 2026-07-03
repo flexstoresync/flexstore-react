@@ -33,6 +33,7 @@
     "index.d.ts",
     "README.md",
     "LICENSE",
+    "docs",
     "examples"
   ],
   "scripts": {

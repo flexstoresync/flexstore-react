@@ -44,9 +44,23 @@ export function useQuery(resource, where) {
   const whereKey = filter ? JSON.stringify(filter) : '';
 
   useEffect(() => {
-    if (!ready) return;
-    return client.subscribe(resource, filter, setRows);
-  }, [client, resource, whereKey, filter, ready]);
+    if (!ready) {
+      setRows([]);
+      return;
+    }
+
+    let cancelled = false;
+    const parsedFilter = whereKey ? JSON.parse(whereKey) : undefined;
+    const unsub = client.subscribe(resource, parsedFilter, (next) => {
+      if (!cancelled) setRows(next);
+    });
+
+    return () => {
+      cancelled = true;
+      unsub();
+    };
+    // whereKey only — inline `{ done: false }` is a new object every render
+  }, [client, resource, whereKey, ready]);
 
   return rows;
 }

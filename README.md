@@ -169,6 +169,8 @@ export function buildSyncConfig(): SyncClientConfig {
 
 TypeScript types ship with the package (`ResourceDefinition`, `SyncClientConfig`, etc.).
 
+**Relationships (parents, children, FKs, React joins):** see **[docs/relationships.md](./docs/relationships.md)**.
+
 ---
 
 ## App entry
@@ -239,6 +241,14 @@ For **self-hosted**, sign up at `http://localhost:8088/dashboard/`, create a pro
 | [flexstore-core](https://github.com/flexstoresync/flexstore-core) | `@flexstore/core` sync engine |
 | [flexstore-self-host](https://github.com/flexstoresync/flexstore-self-host) | Docker Compose self-host |
 | [flexstore](https://github.com/flexstoresync/flexstore) | Monorepo (server, docs, examples) |
+
+---
+
+## Guides
+
+| Guide | Description |
+|-------|-------------|
+| **[Managing relationships](./docs/relationships.md)** | Foreign keys, `dependsOn`, registry order, `pullSchema.include`, React join patterns |
 
 ---
 
