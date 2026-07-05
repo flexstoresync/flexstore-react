@@ -324,6 +324,7 @@ Filter tombstones out of lists with `useQuery` — deleted rows are excluded aut
 6. Use one `useQuery` per resource; join in UI or filter children by FK.
 7. Optionally add `pullSchema.include` when you want nested read shapes from the server.
 8. If using the Postgres connector, add matching mappings (`docs/06-postgres-connector.md`).
+9. **Bump `IDB_SCHEMA_VERSION` in `packages/core/src/store/idb.js`.** The default `IndexedDbStore` maps every resource to its own IndexedDB object store, and stores can only be created in `onupgradeneeded` (which fires on version bumps). Forgetting this leaves existing users with the old schema and a `one of the specified object stores was not found` error on the first call against the new resource. `SqliteStore` is unaffected — it uses `CREATE TABLE IF NOT EXISTS`. See [Adding a new resource](./adding-resources.md) for the full workflow.
 
 ---
 

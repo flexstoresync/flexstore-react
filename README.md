@@ -212,6 +212,18 @@ See [`examples/todos-app/src/App.tsx`](./examples/todos-app/src/App.tsx),
 [`App.css`](./examples/todos-app/src/App.css), and
 [`components/TodoList.tsx`](./examples/todos-app/src/components/TodoList.tsx).
 
+> **Adding a new resource?** The default local store (`IndexedDbStore`) maps
+> each resource to its own IndexedDB object store. Object stores can only be
+> created in the `onupgradeneeded` phase, which fires only when the database
+> version changes. If you ship a new resource to existing users **without**
+> bumping `IDB_SCHEMA_VERSION` in
+> [`packages/core/src/store/idb.js`](https://github.com/flexstoresync/flexstore-core/blob/main/src/store/idb.js),
+> the first `useQuery('newResource')` or `create('newResource', …)` throws
+> `Failed to execute 'transaction' on 'IDBDatabase': one of the specified
+> object stores was not found.` Reusing `SqliteStore` skips this issue (it
+> uses `CREATE TABLE IF NOT EXISTS`). **Increment the version every time
+> you add a new resource.**
+
 ---
 
 ## Environment (Vite)
@@ -249,6 +261,7 @@ For **self-hosted**, sign up at `http://localhost:8088/dashboard/`, create a pro
 | Guide | Description |
 |-------|-------------|
 | **[Managing relationships](./docs/relationships.md)** | Foreign keys, `dependsOn`, registry order, `pullSchema.include`, React join patterns |
+| **[Adding a new resource](./docs/adding-resources.md)** | End-to-end checklist for shipping a new syncable resource (registry, IDB schema bump, smoke test) |
 
 ---
 
