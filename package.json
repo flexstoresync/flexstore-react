@@ -1,6 +1,6 @@
 {
   "name": "@flexstore/react",
-  "version": "0.1.9",
+  "version": "0.1.10",
   "description": "React provider and hooks for FlexStore local-first sync",
   "type": "module",
   "license": "MIT",
