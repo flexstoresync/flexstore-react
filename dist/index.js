@@ -61,9 +61,20 @@ function useQuery(resource, where) {
   const filter = normalizeWhere(where);
   const whereKey = filter ? JSON.stringify(filter) : "";
   useEffect2(() => {
-    if (!ready) return;
-    return client.subscribe(resource, filter, setRows);
-  }, [client, resource, whereKey, filter, ready]);
+    if (!ready) {
+      setRows([]);
+      return;
+    }
+    let cancelled = false;
+    const parsedFilter = whereKey ? JSON.parse(whereKey) : void 0;
+    const unsub = client.subscribe(resource, parsedFilter, (next) => {
+      if (!cancelled) setRows(next);
+    });
+    return () => {
+      cancelled = true;
+      unsub();
+    };
+  }, [client, resource, whereKey, ready]);
   return rows;
 }
 function useSyncStatus() {

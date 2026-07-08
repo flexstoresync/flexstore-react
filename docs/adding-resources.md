@@ -91,15 +91,33 @@ DOMException: Failed to execute 'transaction' on 'IDBDatabase':
 one of the specified object stores was not found.
 ```
 
-**Fix.** Bump the constant at the top of
-[`packages/core/src/store/idb.js`](https://github.com/flexstoresync/flexstore-core/blob/main/src/store/idb.js):
+**Fix.** Bump the schema version:
 
-```js
-// packages/core/src/store/idb.js
-const IDB_SCHEMA_VERSION = 2; // ← bump me on every new resource
+1. **Monorepo default:** `DEFAULT_IDB_SCHEMA_VERSION` in [`packages/core/src/store/idb.js`](https://github.com/flexstoresync/flexstore-core/blob/main/src/store/idb.js).
+2. **Production apps (recommended):** maintain `src/sync/local-schema.ts` and pass `idbSchemaVersion` in your sync config (see Bizflow `buildSyncConfig`).
+
+```ts
+// src/sync/local-schema.ts
+export const LOCAL_IDB_MIGRATIONS = [
+  { version: 1, description: 'Baseline stores' },
+  { version: 2, description: 'menu_folders resource' },
+] as const;
+export const LOCAL_IDB_SCHEMA_VERSION = 2; // latest version
 ```
 
-The existing `onupgradeneeded` handler is idempotent — `createObjectStore` is
+```ts
+// src/sync/config.ts
+import { LOCAL_IDB_SCHEMA_VERSION } from './local-schema';
+
+createSyncClient({
+  ...config,
+  idbSchemaVersion: LOCAL_IDB_SCHEMA_VERSION,
+});
+```
+
+Optional custom hooks (indexes, backfills) via `idbMigrations` on the sync config — each entry runs once when its `version` is applied.
+
+The `onupgradeneeded` handler is idempotent — `createObjectStore` is
 only called for stores that are missing — so existing data in older stores is
 preserved across the upgrade. The `SqliteStore` adapter does **not** need a
 bump: it uses `CREATE TABLE IF NOT EXISTS`, which adds the table on next init.
@@ -155,7 +173,8 @@ If step 6 throws `object stores was not found`, you forgot to bump the version i
 - [ ] Parent resources appear earlier in `src/sync/registry.ts`.
 - [ ] `dependsOn` matches registry order.
 - [ ] `tenantScoped` / `softDeletes` flags set correctly for the domain.
-- [ ] **`IDB_SCHEMA_VERSION` bumped in `packages/core/src/store/idb.js`.**
+- [ ] **`LOCAL_IDB_SCHEMA_VERSION` bumped** in `src/sync/local-schema.ts` (and changelog entry in `LOCAL_IDB_MIGRATIONS`).
+- [ ] `idbSchemaVersion` passed in sync config.
 - [ ] UI uses `useQuery` / `useResource` for the new resource (no bespoke fetches).
 - [ ] Smoke test: existing rows persist, new resource reads + writes succeed.
 - [ ] (Optional) Postgres connector mapping added (`docs/06-postgres-connector.md`).
