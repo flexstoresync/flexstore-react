@@ -13,5 +13,6 @@ export {
   useDevices,
   useThisDevice,
   useSetPaused,
+  useRevalidate,
 } from './hooks.js';
 export { defineResource, resourceRegistry, parsePollIntervalMs, DEFAULT_PUBSUB_FALLBACK_POLL_MS, DEFAULT_POLL_INTERVAL_MS } from '@flexstore/core';

@@ -10,7 +10,11 @@ var SyncCtx = FlexStoreContext;
 // src/FlexStoreProvider.jsx
 import { jsx } from "react/jsx-runtime";
 function FlexStoreProvider({ client: clientProp, config, children }) {
-  const [client] = useState(() => clientProp ?? createSyncClient(config));
+  const [client] = useState(() => {
+    const c = clientProp ?? createSyncClient(config);
+    if (config == null ? void 0 : config.pausedOnStart) c.setPaused(true);
+    return c;
+  });
   const [ready, setReady] = useState(false);
   const [startError, setStartError] = useState(null);
   useEffect(() => {
@@ -112,6 +116,10 @@ function useSetPaused() {
   const client = useClient();
   return useCallback((paused) => client.setPaused(paused), [client]);
 }
+function useRevalidate() {
+  const client = useClient();
+  return useCallback(() => client.revalidate(), [client]);
+}
 function useDeviceId() {
   const client = useClient();
   const ready = useReady();
@@ -193,6 +201,7 @@ export {
   useReady,
   useRealtimeStatus,
   useResource,
+  useRevalidate,
   useSetPaused,
   useStartError,
   useSyncNow,

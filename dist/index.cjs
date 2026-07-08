@@ -35,6 +35,7 @@ __export(index_exports, {
   useReady: () => useReady,
   useRealtimeStatus: () => useRealtimeStatus,
   useResource: () => useResource,
+  useRevalidate: () => useRevalidate,
   useSetPaused: () => useSetPaused,
   useStartError: () => useStartError,
   useSyncNow: () => useSyncNow,
@@ -55,7 +56,11 @@ var SyncCtx = FlexStoreContext;
 // src/FlexStoreProvider.jsx
 var import_jsx_runtime = require("react/jsx-runtime");
 function FlexStoreProvider({ client: clientProp, config, children }) {
-  const [client] = (0, import_react2.useState)(() => clientProp ?? (0, import_core.createSyncClient)(config));
+  const [client] = (0, import_react2.useState)(() => {
+    const c = clientProp ?? (0, import_core.createSyncClient)(config);
+    if (config == null ? void 0 : config.pausedOnStart) c.setPaused(true);
+    return c;
+  });
   const [ready, setReady] = (0, import_react2.useState)(false);
   const [startError, setStartError] = (0, import_react2.useState)(null);
   (0, import_react2.useEffect)(() => {
@@ -157,6 +162,10 @@ function useSetPaused() {
   const client = useClient();
   return (0, import_react3.useCallback)((paused) => client.setPaused(paused), [client]);
 }
+function useRevalidate() {
+  const client = useClient();
+  return (0, import_react3.useCallback)(() => client.revalidate(), [client]);
+}
 function useDeviceId() {
   const client = useClient();
   const ready = useReady();
@@ -239,6 +248,7 @@ var import_core2 = require("@flexstore/core");
   useReady,
   useRealtimeStatus,
   useResource,
+  useRevalidate,
   useSetPaused,
   useStartError,
   useSyncNow,

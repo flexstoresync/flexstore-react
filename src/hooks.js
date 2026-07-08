@@ -106,6 +106,12 @@ export function useSetPaused() {
   return useCallback((paused) => client.setPaused(paused), [client]);
 }
 
+/** Force the server to bypass its cached credential validation and re-check now. */
+export function useRevalidate() {
+  const client = useClient();
+  return useCallback(() => client.revalidate(), [client]);
+}
+
 /** Local device id for this install (after provider ready). */
 export function useDeviceId() {
   const client = useClient();

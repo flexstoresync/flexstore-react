@@ -10,7 +10,11 @@ import { FlexStoreContext } from './context.js';
  * @param {object} [props.config] Passed to createSyncClient when client is omitted
  */
 export function FlexStoreProvider({ client: clientProp, config, children }) {
-  const [client] = useState(() => clientProp ?? createSyncClient(config));
+  const [client] = useState(() => {
+    const c = clientProp ?? createSyncClient(config);
+    if (config?.pausedOnStart) c.setPaused(true);
+    return c;
+  });
   const [ready, setReady] = useState(false);
   const [startError, setStartError] = useState(null);
 

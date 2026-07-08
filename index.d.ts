@@ -57,6 +57,11 @@ export function useRealtimeStatus(): {
 };
 export function useSyncNow(): () => Promise<void>;
 export function useSetPaused(): (paused: boolean) => void;
+export function useRevalidate(): () => Promise<{
+  allowed: boolean;
+  expires_at?: string;
+  error?: string;
+}>;
 export function useDeviceId(): string | null;
 export function useDevices(options?: { autoLoad?: boolean }): {
   devices: TenantDevice[];
